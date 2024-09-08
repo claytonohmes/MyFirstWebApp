@@ -18,6 +18,8 @@ def login():
         if user:
             if check_password_hash(user.password, password):
                 flash('Logged in successfully!', category='success')
+                #this allows flask to remember that a user is logged in
+                login_user(user, remember=True)
                 return redirect(url_for('views.home'))
             else:
                 flash('Incorrect password, try again.', category='error')
@@ -25,11 +27,13 @@ def login():
             flash('Email does not exist.', category='error')
 
     # you can pass variables to your templates to be used for display purposes like so: here we are passing text
-    return render_template('login.html', boolean=False)
+    return render_template('login.html', user=current_user)
 
 @auth.route('/logout')
+@login_required
 def logout():
-    return "<p>Logout</P>"
+    logout_user()
+    return redirect(url_for('auth.login'))
 
 @auth.route('/sign-up', methods=['GET','POST'])
 def sign_up():
@@ -55,7 +59,8 @@ def sign_up():
             db.session.add(new_user)
             db.session.commit()
             flash("Account Created", category='success')
+            login_user(new_user, remember=True)
             return redirect(url_for('views.home'))
 
 
-    return render_template('sign_up.html')
+    return render_template('sign_up.html', user=current_user)
